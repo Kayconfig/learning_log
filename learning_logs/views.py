@@ -13,8 +13,9 @@ def index(request):
 @login_required
 def topics( request):
     '''show all topics '''
-    # query the database for topics and sort by the date_added attribute
-    topics = Topic.objects.order_by('date_added')
+    # query the database for topics and sort by the date_added attribute, 
+    # restricting topics access to appropriate Users.
+    topics = Topic.objects.filter(owner=request.user).order_by('date_added')
     # a dictionary in which keys are names I used in the template to access data
     context = {'topics': topics}
     return render(request, 'learning_logs/topics.html', context)
@@ -23,6 +24,11 @@ def topics( request):
 def topic(request, topic_id):
     '''show a single topic and all its entries.'''
     topic = Topic.objects.get(id=topic_id)
+    
+    #Make sure the topic belongs to the current user.
+    if topic.owner != request.user:
+        return redirect('learning_logs:topics')
+
     # the '-' in front of the date_added argument, makes django to 
     # sort the entries by reverse order( latest to earliest )
     entries = topic.entry_set.order_by('-date_added')
@@ -39,7 +45,10 @@ def new_topic(request):
         #data was submitted save new topic
         form = TopicForm(request.POST)
         if form.is_valid():
-            form.save()
+            #Associate new topics with the current user
+            newTopic = form.save( commit=False)
+            newTopic.owner = request.user
+            newTopic.save()
             return redirect('learning_logs:topics')
     
     #display blank form or invalid form
@@ -51,6 +60,8 @@ def new_entry(request, topic_id):
     '''Add a new entry to the topic with id == topic_id'''
     #get the topic
     topic = Topic.objects.get(id= topic_id)
+    if topic.owner != request.user:
+        return redirect('learning_logs:topics')
     if request.method != 'POST':
         #no data was submitted create empty form
         form = EntryForm()
@@ -72,6 +83,8 @@ def edit_entry( request, entry_id):
     '''Edit an existing entry'''
     entry = Entry.objects.get(id= entry_id)
     topic = entry.topic
+    if topic.owner != request.user:
+        return redirect('learning_logs:topics')
 
     if request.method != "POST":
         #no data was submitted, fill the form with current data.
