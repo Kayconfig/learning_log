@@ -101,3 +101,22 @@ def edit_entry( request, entry_id):
     return render( request, 'learning_logs/edit_entry.html', context)
 
 
+@login_required
+def delete_topic(request, topic_id):
+    topic = Topic.objects.get(id=topic_id)
+    if request.user == topic.owner:#only topic owners can delete topic
+        action = request.GET['action']
+        if action == "confirm": #confirm if the user wants to delete
+            context = {'topic': topic}
+            return render(request, 'learning_logs/confirmDelete.html', context)
+        elif action == "delete": #the user has confirmed the delete action
+            topic.delete()
+            
+
+    
+    #return to topics
+    return redirect('learning_logs:topics')
+        
+
+
+
