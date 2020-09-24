@@ -111,11 +111,20 @@ def delete_topic(request, topic_id):
             return render(request, 'learning_logs/confirmDelete.html', context)
         elif action == "delete": #the user has confirmed the delete action
             topic.delete()
-            
 
-    
     #return to topics
     return redirect('learning_logs:topics')
+
+@login_required
+def delete_entry(request, entry_id):
+    entry = Entry.objects.get( id=entry_id)
+    topic = entry.topic
+    if request.user != topic.owner: #if user is not the owner
+        return redirect('learning_logs:topics')
+    else: # user is the owner
+        entry.delete()
+        return redirect('learning_logs:topic', topic_id= topic.id)
+    
         
 
 
