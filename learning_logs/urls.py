@@ -1,3 +1,4 @@
+"""Defines URL patterns for topics and entries"""
 from django.urls import path
 from learning_logs import views
 

@@ -6,7 +6,10 @@ from learning_logs.forms import TopicForm, EntryForm
 #homepage
 def index(request):
     '''The home page for Learning Log.'''
-    return render( request, 'learning_logs/index.html')
+    if request.user.is_authenticated:
+        return render( request, 'learning_logs/index.html')
+    else:
+        return redirect('users:login')
 
 def topics( request):
     '''show all topics '''
